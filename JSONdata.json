@@ -1,0 +1,24 @@
+{
+  "scene1": {
+    "timestamp_inicio": 0.0,
+    "tempoAproximacao": 0.0,
+    "tempoCaixa": 0.0,
+    "tempoAranha": 0.0,
+    "timestamp_fim": 0.0
+},
+"scene2": {
+    "timestamp_inicio": 0.0,
+    "tempoCopo": 0.0,
+    "timestamp_fim": 0.0
+},
+"scene3": {
+    "timestamp_inicio": 0.0,
+    "tempoAranha1": 0.0,
+    "tempoAranha2": 0.0,
+    "tempoAranha3": 0.0,
+    "tempoAranha4": 0.0,
+    "tempoAranha5": 0.0, 
+    "totalAranhas": 0,
+    "timestamp_fim": 0.0
+  }
+}
