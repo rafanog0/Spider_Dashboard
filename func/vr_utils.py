@@ -4,7 +4,7 @@ import os
 import json
 import sqlite3
 from datetime import datetime
-import xr
+import pyopenxr as xr   # ✅ Troquei aqui
 
 # Constantes para paths padrão
 DEFAULT_SRC_PATH = "/media/oculos/SessionData/resultado.json"
@@ -66,16 +66,6 @@ def process_and_save(db_path: str,
     """
     Processa os JSONs gerados pela dashboard e pelo VR e insere nos
     respectivos esquemas fase1, fase2 e fase3.
-
-    - dashboard_json: path para JSON com 'bpm_dados' e 'timestamps' ("HH:MM:SS").
-    - vr_json: path para JSON com campos de fase, cada um contendo
-      'start', 'end' no formato "HH:MM:SS" e demais atributos 'tempo...'.
-    - participante_id: chave estrangeira no banco.
-
-    Regras:
-      * Para cada fase, filtrar BPMs cujos timestamps estejam entre start e end.
-      * session_bpm armazenado como string array JSON.
-      * Atributos 'tempo...' armazenar valor inteiro antes do ponto e duas casas decimais.
     """
     # carrega JSONs
     with open(dashboard_json, encoding='utf-8') as f:
@@ -87,33 +77,28 @@ def process_and_save(db_path: str,
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
 
-    # função auxiliar para parse HH:MM:SS
     def parse_hhmmss(ts: str) -> datetime.time:
         return datetime.strptime(ts, "%H:%M:%S").time()
 
-    # pre-processa dashboard timestamps em tempos
     dash_times = [parse_hhmmss(t) for t in dash['timestamps']]
     dash_bpms  = dash['bpm_dados']
 
-    # insere cada fase
     for fase_key, table in [('fase1', 'fase1'), ('fase2', 'fase2'), ('fase3', 'fase3')]:
         if fase_key not in vr:
             continue
         fase = vr[fase_key]
-        # obtém intervalos
+
         start = parse_hhmmss(fase['start'])
         end   = parse_hhmmss(fase['end'])
-        # filtra bpms
+
         bpms_fase = [b for b, t in zip(dash_bpms, dash_times) if start <= t <= end]
         session_bpm_str = json.dumps(bpms_fase)
 
-        # prepara valores de tempo arredondados
         tempo_kwargs = {}
         for k, v in fase.items():
             if k.startswith('tempo') and isinstance(v, (int, float)):
                 tempo_kwargs[k] = f"{v:.2f}"
 
-        # monta insert conforme tabela
         if table == 'fase1':
             cur.execute(
                 "INSERT INTO fase1(participante_id, session_bpm, tempo_finalizacao, tempo_encontrar_aranha)"
@@ -133,10 +118,8 @@ def process_and_save(db_path: str,
                  tempo_kwargs.get('tempoCopo','0.00'))
             )
         else:  # fase3
-            # conta quantas chaves timeline
             tempos = [v for k, v in tempo_kwargs.items() if k.startswith('tempoAranha')]
             total = len(tempos)
-            # insere todos campos tempoAranha1..N
             columns = [f"tempo_encontrar_aranha_{i+1}" for i in range(total)]
             values  = [tempos[i] for i in range(total)]
             cols_sql = ",".join(["participante_id","session_bpm","tempo_finalizacao"] + columns + ["total_aranhas_entradas"])

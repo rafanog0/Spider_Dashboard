@@ -1,5 +1,5 @@
 # func/vr_utils.py
-import xr
+import pyopenxr as xr   # ✅ troca do import
 
 # 1) Cria a instância **uma só vez** no módulo
 _app_info = xr.XrApplicationInfo(
