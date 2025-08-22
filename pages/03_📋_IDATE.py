@@ -44,8 +44,13 @@ def idate_form():
     nome_selecionado = st.selectbox("Selecione o participante", list(nome_to_id.keys()))
     participante_id = nome_to_id[nome_selecionado]
 
-    tipo_idate = st.radio("Tipo do questionário", ["estado", "traço"])
-
+    tipo_idate = st.radio("Tipo do questionário", ["estado_pre", "estado_pos", "traço"])
+    tipo_idate_map = {
+        "estado_pre": "idate_estado_pre",
+        "estado_pos": "idate_estado_pos",
+        "traço": "idate_traco"
+    }
+    tipo_idate = tipo_idate_map[tipo_idate]
     st.markdown("### Responda às 20 questões da escala:")
     with st.form("form_idate"):
         respostas = []
